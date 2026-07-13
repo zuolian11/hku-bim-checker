@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIM Compliance Checker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; overflow: hidden; height: 100vh; }
+    header { height: 48px; background: #16213e; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #0f3460; z-index: 10; position: relative; }
+    header h1 { font-size: 16px; font-weight: 600; }
+    header .badge { margin-left: 12px; padding: 2px 10px; background: #e94560; border-radius: 10px; font-size: 11px; color: #fff; }
+    header button { margin-left: auto; padding: 4px 16px; background: #0f3460; border: 1px solid #3498db; color: #3498db; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    header button:hover { background: #3498db; color: #fff; }
+    header button.hidden { display: none; }
+    main { display: flex; height: calc(100vh - 48px); }
+    #viewer { flex: 1; position: relative; overflow: hidden; }
+    #panel { width: 320px; background: #16213e; border-left: 1px solid #0f3460; overflow-y: auto; padding: 16px; z-index: 10; }
+    #panel h2 { font-size: 14px; margin-bottom: 8px; color: #e94560; }
+    #panel h3 { font-size: 12px; margin: 14px 0 6px; color: #a0a0b0; text-transform: uppercase; letter-spacing: 0.5px; }
+    #status { padding: 8px 12px; margin-bottom: 12px; background: #0f3460; border-radius: 6px; font-size: 13px; color: #4ecca3; }
+    #upload-panel { border: 2px dashed #0f3460; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; margin-bottom: 12px; transition: border-color 0.2s; }
+    #upload-panel:hover { border-color: #e94560; }
+    #upload-panel .icon { font-size: 36px; color: #0f3460; line-height: 1; margin-bottom: 8px; }
+    #upload-panel p { color: #a0a0b0; font-size: 12px; }
+    .stat-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+    .stat-row .pass { color: #4ecca3; font-weight: 600; }
+    .stat-row .fail { color: #e94560; font-weight: 600; }
+    .stat-row .warn { color: #f0a500; font-weight: 600; }
+    .issue { padding: 8px; margin-bottom: 6px; background: #0f3460; border-radius: 6px; cursor: pointer; font-size: 12px; border-left: 3px solid #e94560; }
+    .issue:hover { background: #0d2950; }
+    .issue.warn { border-left-color: #f0a500; }
+    .issue .name { font-weight: 600; display: block; margin-bottom: 2px; }
+    .issue .detail { color: #a0a0b0; }
+    .legend-item { display: flex; align-items: center; padding: 3px 0; font-size: 12px; }
+    .legend-item .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+    .dot.red { background: #e94560; } .dot.blue { background: #3498db; }
+    .dot.yellow { background: #f0a500; } .dot.gray { background: #889; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>BIM Compliance Checker</h1>
+  <span class="badge">AI+BIM</span>
+  <button id="btn-reset" class="hidden" onclick="location.reload()">New Check</button>
+</header>
+<main>
+  <input type="file" id="file-input" accept=".ifc" style="position:absolute;left:-9999px">
+  <div id="viewer"></div>
+  <aside id="panel">
+    <div id="status">Loading engine...</div>
+    <div id="upload-panel">
+      <div class="icon">+</div>
+      <p>Drop .ifc file or click</p>
+    </div>
+    <div id="summary" style="display:none"></div>
+    <div id="issues" style="display:none"></div>
+    <div id="legend">
+      <h3>Legend</h3>
+      <div class="legend-item"><span class="dot blue"></span> Door (pass)</div>
+      <div class="legend-item"><span class="dot red"></span> Door width &lt; 900mm</div>
+      <div class="legend-item"><span class="dot yellow"></span> Missing FireRating</div>
+      <div class="legend-item"><span class="dot gray"></span> Wall (OK)</div>
+    </div>
+  </aside>
+</main>
+<script type="module" src="/main.js"></script>
+</body>
+</html>
