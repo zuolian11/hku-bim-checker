@@ -4,38 +4,66 @@
 
 ---
 
-## Day 1 — 2026-07-13：环境搭建 + 全栈框架 ✅
+## Day 1 — 2026-07-13：全栈开发 ✅
 
-**完成：**
-- [x] ifcopenshell 0.8.5 安装
-- [x] 下载 3 个样例 IFC 文件
-- [x] FastAPI + ifcopenshell + Three.js 全栈框架一次性搭完
-- [x] POST /api/upload — 文件上传
-- [x] POST /api/check/{id} — 两条规则：门宽检查 + FireRating检查
-- [x] GET /api/geo/{id} — 真实几何数据（63 个元素，create_shape 提取）
-- [x] 前端：Three.js 3D 渲染 + 拖拽上传 + 报告面板 + 点击定位
-- [x] 本地服务 http://localhost:8000 可运行
-- [x] render.yaml 部署配置
+**完成的工作：**
 
-**API 验证结果：**
-- 门宽检查：9 pass / 7 fail ✅
-- FireRating：0 pass / 63 fail ✅
-- 几何导出：63 elements ✅
+### 环境
+- [x] Python 3.12 + ifcopenshell 0.8.5
+- [x] Node.js v24 + npm + Vite
+- [x] Git 初始化 + 8 次提交
 
-**待做：**
-- [ ] 前端上传 + 3D 渲染联调实测
-- [ ] README.md
-- [ ] 录视频
-- [ ] 推 GitHub + 部署 Render
+### 后端 (FastAPI + ifcopenshell)
+- [x] 两条合规检查规则（门宽 >= 900mm + FireRating 完整性）
+- [x] 规则智能化：名字含 "Fire/1-hr" 但缺 FireRating → fail；普通缺失 → warning
+- [x] 多格式支持：IFC / JSON / DXF / DWG
+- [x] 空间分析：自动分类门为 egress / interior / stairwell
+- [x] AI 规则生成器：自然语言 → 可执行检查规则
+- [x] 支持按门分类筛选：`egress doors at least 1000mm`
+
+### 前端 (Vite + web-ifc-viewer)
+- [x] 专业深色主题 UI
+- [x] 3D IFC 模型渲染
+- [x] 失败元素红色标记、警告黄色标记
+- [x] 点击问题列表 → 相机飞到对应构件
+- [x] AI 规则输入框 + Run 按钮
+- [x] 拖拽上传支持 .ifc / .json / .dxf / .dwg
+
+### 项目文件
+```
+hku-bim-checker/
+├── backend/
+│   ├── main.py              FastAPI 入口
+│   ├── checker.py           合规规则（IFC + JSON）
+│   ├── ai_rule_gen.py       自然语言 → 规则
+│   ├── spatial_analysis.py  门分类（疏散/室内/楼梯）
+│   ├── cad_checker.py       DXF 检查
+│   ├── cad_utils.py         DWG 版本检测
+│   └── requirements.txt
+├── frontend/
+│   ├── index.html           主页面
+│   ├── main.js              交互逻辑
+│   └── package.json
+├── samples/                 测试数据（IFC + JSON + DWG）
+├── prompts/                 AI prompt 记录
+├── README.md
+├── .gitignore
+├── render.yaml
+└── just-work.md
+```
+
+### 关键设计决策
+| 决策 | 理由 |
+|------|------|
+| web-ifc-viewer 替代自建 Three.js | 专业 IFC 渲染，省 3 天开发 |
+| ifcopenshell 做后端检查 | IFC Pset 提取最可靠 |
+| 空间分析 + AI 规则分离 | 先分类再检查，架构清晰 |
+| 正则匹配替代 LLM | 系统可独立运行，不依赖 API |
+| MeshStandardMaterial 纯色 | 红色醒目，不被原模型混色 |
 
 ---
 
-## Day 2+
-
-剩余时间用于修 Bug + 完善 README + 录视频 + 部署。
-
----
-
-## 笔记
-- 技术栈：Python + FastAPI + ifcopenshell + Three.js
-- 无需 git/npm（系统未装），用 OpenCode 直接操作
+## 待做
+- [ ] 录 3 分钟演示视频
+- [ ] 推送到 GitHub
+- [ ] 邮件提交 (junnaifj@hku.hk)

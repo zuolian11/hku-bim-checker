@@ -1,0 +1,15 @@
+{
+  "doors": [
+    {"name": "Main Entrance", "width": 1200, "height": 2100, "fireRating": "FD60"},
+    {"name": "Fire Exit A", "width": 800, "height": 2100, "fireRating": null},
+    {"name": "Office Door", "width": 750, "height": 2100, "fireRating": null},
+    {"name": "Firewall Door B", "width": 900, "height": 2100, "fireRating": null}
+  ],
+  "walls": [
+    {"name": "External Wall North", "fireRating": null},
+    {"name": "Firewall Partition 1-hr", "fireRating": null},
+    {"name": "Internal Partition", "fireRating": "30min"},
+    {"name": "Stairwell Wall 2-hr", "fireRating": null},
+    {"name": "Corridor Wall", "fireRating": null}
+  ]
+}

@@ -7,3 +7,5 @@ dist/
 .vite/
 
 .idea/
+
+frontend/public/*.wasm

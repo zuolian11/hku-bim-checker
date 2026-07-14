@@ -1,69 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BIM Compliance Checker</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; overflow: hidden; height: 100vh; }
-    header { height: 48px; background: #16213e; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #0f3460; z-index: 10; position: relative; }
-    header h1 { font-size: 16px; font-weight: 600; }
-    header .badge { margin-left: 12px; padding: 2px 10px; background: #e94560; border-radius: 10px; font-size: 11px; color: #fff; }
-    header button { margin-left: auto; padding: 4px 16px; background: #0f3460; border: 1px solid #3498db; color: #3498db; border-radius: 6px; cursor: pointer; font-size: 12px; }
-    header button:hover { background: #3498db; color: #fff; }
-    header button.hidden { display: none; }
-    main { display: flex; height: calc(100vh - 48px); }
-    #viewer { flex: 1; position: relative; overflow: hidden; }
-    #panel { width: 320px; background: #16213e; border-left: 1px solid #0f3460; overflow-y: auto; padding: 16px; z-index: 10; }
-    #panel h2 { font-size: 14px; margin-bottom: 8px; color: #e94560; }
-    #panel h3 { font-size: 12px; margin: 14px 0 6px; color: #a0a0b0; text-transform: uppercase; letter-spacing: 0.5px; }
-    #status { padding: 8px 12px; margin-bottom: 12px; background: #0f3460; border-radius: 6px; font-size: 13px; color: #4ecca3; }
-    #upload-panel { border: 2px dashed #0f3460; border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; margin-bottom: 12px; transition: border-color 0.2s; }
-    #upload-panel:hover { border-color: #e94560; }
-    #upload-panel .icon { font-size: 36px; color: #0f3460; line-height: 1; margin-bottom: 8px; }
-    #upload-panel p { color: #a0a0b0; font-size: 12px; }
-    .stat-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
-    .stat-row .pass { color: #4ecca3; font-weight: 600; }
-    .stat-row .fail { color: #e94560; font-weight: 600; }
-    .stat-row .warn { color: #f0a500; font-weight: 600; }
-    .issue { padding: 8px; margin-bottom: 6px; background: #0f3460; border-radius: 6px; cursor: pointer; font-size: 12px; border-left: 3px solid #e94560; }
-    .issue:hover { background: #0d2950; }
-    .issue.warn { border-left-color: #f0a500; }
-    .issue .name { font-weight: 600; display: block; margin-bottom: 2px; }
-    .issue .detail { color: #a0a0b0; }
-    .legend-item { display: flex; align-items: center; padding: 3px 0; font-size: 12px; }
-    .legend-item .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
-    .dot.red { background: #e94560; } .dot.blue { background: #3498db; }
-    .dot.yellow { background: #f0a500; } .dot.gray { background: #889; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIM Compliance Checker</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #161822;
+    --border: #1e2130;
+    --text: #c8ccd4;
+    --muted: #6b7280;
+    --fail: #ff2020;
+    --warn: #f59e0b;
+    --pass: #22c55e;
+    --door: #3b82f6;
+    --wall: #4f5565;
+    --highlight: #0ea5e9;
+    --radius: 8px;
+    --transition: 0.2s ease;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    height: 100vh; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Header */
+  .topbar {
+    height: 44px; background: var(--panel); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 16px; gap: 12px;
+  }
+  .topbar .logo { font-size: 13px; font-weight: 600; letter-spacing: -0.2px; color: #fff; }
+  .topbar .version { font-size: 10px; color: var(--muted); padding: 2px 8px; border: 1px solid var(--border); border-radius: 10px; }
+  .topbar .actions { margin-left: auto; display: flex; gap: 8px; }
+  .btn {
+    padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text);
+    transition: all var(--transition);
+  }
+  .btn:hover { border-color: var(--highlight); color: var(--highlight); }
+  .btn.primary { background: var(--highlight); border-color: var(--highlight); color: #fff; }
+  .btn.primary:hover { opacity: 0.85; }
+  /* Layout */
+  .app { display: flex; height: calc(100vh - 44px); }
+  .viewer { flex: 1; position: relative; background: #0a0b10; }
+  .sidebar {
+    width: 340px; background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  /* Drop Zone */
+  .drop-zone {
+    margin: 12px; padding: 32px 16px; border: 2px dashed var(--border);
+    border-radius: var(--radius); text-align: center; cursor: pointer;
+    transition: all var(--transition);
+  }
+  .drop-zone:hover { border-color: var(--highlight); background: rgba(14,165,233,0.04); }
+  .drop-zone .icon { font-size: 28px; color: var(--muted); margin-bottom: 8px; }
+  .drop-zone p { font-size: 12px; color: var(--muted); }
+  .drop-zone .formats { font-size: 10px; color: var(--muted); margin-top: 8px; opacity: 0.6; }
+  /* Status Bar */
+  .status-bar {
+    margin: 0 12px 12px; padding: 10px 14px; border-radius: var(--radius);
+    background: rgba(14,165,233,0.06); border: 1px solid rgba(14,165,233,0.15);
+    font-size: 12px; color: var(--highlight); display: none;
+  }
+  .status-bar.show { display: block; }
+  .status-bar.error { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.15); color: var(--fail); }
+  .status-bar .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 8px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  /* Summary Cards */
+  .section { padding: 0 12px; margin-bottom: 16px; display: none; }
+  .section.show { display: block; }
+  .section h2 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; }
+  .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card {
+    padding: 12px; border-radius: var(--radius); background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border); text-align: center;
+  }
+  .stat-card .number { font-size: 24px; font-weight: 700; letter-spacing: -1px; }
+  .stat-card .label { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .stat-card.pass { border-left: 2px solid var(--pass); }  .stat-card.pass .number { color: var(--pass); }
+  .stat-card.fail { border-left: 2px solid var(--fail); }  .stat-card.fail .number { color: var(--fail); }
+  .stat-card.warn { border-left: 2px solid var(--warn); }  .stat-card.warn .number { color: var(--warn); }
+  /* Issue List */
+  .issue-list { flex: 1; overflow-y: auto; padding: 0 12px 16px; }
+  .issue-item {
+    padding: 10px 12px; margin-bottom: 6px; border-radius: 6px;
+    cursor: pointer; border: 1px solid var(--border); background: rgba(255,255,255,0.01);
+    transition: all var(--transition); position: relative;
+  }
+  .issue-item:hover { border-color: var(--highlight); background: rgba(14,165,233,0.04); }
+  .issue-item .tag {
+    display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 9px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .issue-item .tag.fail { background: rgba(239,68,68,0.15); color: var(--fail); }
+  .issue-item .tag.warn { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .issue-item .title { font-size: 12px; font-weight: 500; color: var(--text); }
+  .issue-item .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  /* Legend */
+  .legend { padding: 12px; border-top: 1px solid var(--border); }
+  .legend .row { display: flex; align-items: center; gap: 10px; padding: 4px 0; font-size: 11px; color: var(--muted); }
+  .legend .swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .swatch.r { background: var(--fail); } .swatch.y { background: var(--warn); }
+  .swatch.b { background: var(--door); } .swatch.g { background: var(--wall); }
+</style>
 </head>
 <body>
-<header>
-  <h1>BIM Compliance Checker</h1>
-  <span class="badge">AI+BIM</span>
-  <button id="btn-reset" class="hidden" onclick="location.reload()">New Check</button>
-</header>
-<main>
-  <input type="file" id="file-input" accept=".ifc" style="position:absolute;left:-9999px">
-  <div id="viewer"></div>
-  <aside id="panel">
-    <div id="status">Loading engine...</div>
-    <div id="upload-panel">
-      <div class="icon">+</div>
-      <p>Drop .ifc file or click</p>
+
+<div class="topbar">
+  <span class="logo">BIM Checker</span>
+  <span class="version">v1.0</span>
+  <div class="actions">
+    <button class="btn" id="btn-clear" onclick="location.reload()" style="display:none">Clear</button>
+  </div>
+</div>
+
+<div class="app">
+  <input type="file" id="file-input" accept=".ifc,.json,.dxf,.dwg" style="display:none">
+  <div class="viewer" id="viewer"></div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="drop-zone" id="drop-zone">
+      <div class="icon">&#9650;</div>
+      <p>Drop IFC, JSON, or CAD file</p>
+      <p class="formats">.ifc &middot; .json &middot; .dxf &middot; .dwg</p>
     </div>
-    <div id="summary" style="display:none"></div>
-    <div id="issues" style="display:none"></div>
-    <div id="legend">
-      <h3>Legend</h3>
-      <div class="legend-item"><span class="dot blue"></span> Door (pass)</div>
-      <div class="legend-item"><span class="dot red"></span> Door width &lt; 900mm</div>
-      <div class="legend-item"><span class="dot yellow"></span> Missing FireRating</div>
-      <div class="legend-item"><span class="dot gray"></span> Wall (OK)</div>
+
+    <div class="status-bar" id="status">Processing...</div>
+
+    <div class="section" id="section-summary">
+      <h2>Results</h2>
+      <div class="stat-cards" id="stat-cards"></div>
     </div>
-  </aside>
-</main>
+
+    <div class="section show" id="section-ai" style="padding:0 12px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h2 style="margin:0">Actions</h2>
+        <button class="btn" id="btn-pdf" style="font-size:10px">Export PDF</button>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <input id="ai-key" type="password" placeholder="DeepSeek API key" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,0.03);color:var(--text);font-size:10px;outline:none;font-family:monospace">
+        <button class="btn" id="btn-key-toggle" style="flex-shrink:0;font-size:11px">Show</button>
+      </div>
+      <div style="display:flex;gap:6px">
+        <input id="ai-input" placeholder='e.g. "egress doors at least 1000mm"' style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,0.03);color:var(--text);font-size:11px;outline:none">
+        <button class="btn" id="btn-preview" style="flex-shrink:0">Preview</button>
+        <button class="btn primary" id="btn-ai" style="flex-shrink:0">Run</button>
+      </div>
+      <div id="ai-preview" style="margin-top:8px;font-size:11px;color:var(--muted);display:none"></div>
+    </div>
+
+    <div class="section" id="section-issues">
+      <h2>Violations</h2>
+    </div>
+    <div class="issue-list" id="issue-list"></div>
+
+    <div class="legend">
+      <div class="row"><span class="swatch r"></span> Failed</div>
+      <div class="row"><span class="swatch y"></span> Warning</div>
+      <div class="row"><span class="swatch b"></span> Door (OK)</div>
+      <div class="row"><span class="swatch g"></span> Wall (OK)</div>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="/main.js"></script>
 </body>
 </html>
