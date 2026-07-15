@@ -1,72 +1,167 @@
-# HKU AI+BIM Compliance Checker — 演示脚本
+# BIM Compliance Checker — 演示脚本
 
-> 目标时长：2 分 30 秒
-
----
-
-## 开场 (0:00-0:15)
-
-"This is a web-based BIM compliance checker built for the HKU AI+BIM technical test.
-Upload a building model, see it in 3D, and get instant violation reports — 
-all powered by AI-generated rules."
+> 时长：≤ 3 分钟 | 旁白：中文 | 录制：OBS / Xbox Game Bar
 
 ---
 
-## IFC 上传 + 3D 渲染 (0:15-0:45)
+## 一、开场 — 贴合项目要求 (0:00-0:20)
 
-- 拖拽 `Ifc4_Revit_ARC.ifc` 到页面
-- 3D 模型自动渲染
-- 指出红色 = 门宽不合格，黄色 = 缺 FireRating
-- "The left panel shows statistics: X passed, Y failed, Z warnings."
+```
+大家好，这是为 HKU AI+BIM 团队笔试开发的 BIM 合规检查器。
+项目要求是：构建一个 Web 微原型，对建筑模型进行自动化合规检查，
+实现 1-2 条规则即可，核心考察"可运行 + 有思考 + 有品味"。
 
----
-
-## 合规检查结果 (0:45-1:15)
-
-- 滚动右侧问题列表
-- "Two built-in rules are running: door width >= 900mm for fire egress,
-  and FireRating completeness on all doors and walls."
-- 点击一个 issue → 绿色高亮
-- "Click any violation to highlight it in 3D."
+接下来展示项目的完整功能和设计思路。
+```
 
 ---
 
-## AI 规则生成 (1:15-1:50)
+## 二、核心功能演示 (0:20-2:00)
 
-- 聚焦 AI Rule Generator 区域
-- 输入: `egress doors at least 1000mm`
-- 点击 Preview → 展示解析结果
-- 点击 Run → 结果更新
-- "The AI rule engine parses natural language regulations
-  and runs them against the loaded model."
+### 2.1 IFC 上传 + 3D 渲染 (0:20-0:45)
+```
+操作：拖拽 Ifc4_Revit_ARC.ifc 到页面
+
+旁白：
+"上传一个真实 Revit 导出的 IFC 模型。左侧 3D 视图通过 web-ifc-viewer
+直接在浏览器中渲染建筑模型，无需任何软件安装。
+
+右侧面板显示检查摘要：门宽检查和 FireRating 完整性检查。
+红色标出不合规构件，黄色标出警告项。
+
+两条规则：
+1. 疏散门宽度 >= 900mm，这是 GB 50016 消防规范的硬性要求。
+2. FireRating 防火等级属性完整性 — 这是基于空间分析的门分类系统，
+   自动识别疏散门、室内门和楼梯间门，针对不同类型分别检查。
+   名字含 '1-hr' 或 'fire' 但缺 FireRating 的构件被标为 fail，
+   普通墙体缺失仅标为 warning。"
+```
+
+### 2.2 交互式问题定位 (0:45-1:00)
+```
+操作：点击右侧任意 issue → 3D 中绿色高亮并聚焦
+
+旁白：
+"点击任何问题项，3D 视图中的对应构件会立即高亮并居中显示。
+这种交互让审查人员能够直观地定位问题位置。"
+```
+
+### 2.3 AI 规则生成器 (1:00-1:35)
+```
+操作：输入 "egress doors at least 1000mm" → Preview → Run
+
+旁白：
+"这是项目最具创新性的部分：AI 规则生成器。
+用户可以用自然语言定义检查规则，无需编写代码。
+
+输入 'egress doors at least 1000mm'，
+点击 Preview 看 AI 解析结果：目标 => 疏散门，属性 => 门宽，条件 => >= 1000mm。
+确认后点击 Run，规则立即在加载的模型上执行，结果实时更新。
+
+输入 'walls must have FireRating' 同样可以。
+系统内置正则引擎做快速解析，复杂语句自动转发给 DeepSeek LLM 兜底。"
+```
+
+### 2.4 PDF 报告导出 (1:35-1:50)
+```
+操作：点击 Export PDF → 打开下载的 PDF
+
+旁白：
+"一键导出专业的合规检查报告，包含统计摘要和详细问题清单，
+可直接用于项目交付或存档。"
+```
+
+### 2.5 多格式支持 (1:50-2:00)
+```
+操作：上传 sample.json
+
+旁白：
+"项目支持多种输入格式。除了 IFC，还支持 JSON 简化模型和 CAD DXF 文件。
+上传 JSON 文件后，同样的检查规则和 AI 引擎都能正常执行，
+不依赖任何特定的商业软件。"
+```
 
 ---
 
-## PDF 导出 (1:50-2:05)
+## 三、技术栈与架构 (2:00-2:20)
 
-- 点击 Export PDF
-- PDF 下载完成，打开展示
-- "Export a professional compliance report with one click."
+```
+旁白：
+"技术栈的选择体现工程判断：
+- 前端：Vite + web-ifc-viewer，浏览器原生解析 IFC，
+  比自建 Three.js 省了 3 天开发时间。
+- 后端：Python FastAPI + ifcopenshell，直接访问 IFC Pset 属性集。
+- AI 引擎：正则 + DeepSeek LLM 双层架构，正则保证离线可用，
+  LLM 处理复杂语义。
+- 部署：Docker Compose 一套命令启动，Render.com 一键部署。
+
+项目包含 9 条 pytest 单元测试，覆盖规则解析和边界情况。
+整个开发过程由 OpenCode AI 辅助完成，prompts 记录在仓库中。"
+```
 
 ---
 
-## 结尾 (2:05-2:30)
+## 四、后期维护与优化方向 (2:20-2:50)
 
-- 切换到 JSON 文件演示: 上传 `sample.json`
-- "The checker also supports JSON models and CAD DXF files."
-- "Built with FastAPI + ifcopenshell on the backend,
-  web-ifc-viewer + Three.js on the frontend,
-  and DeepSeek LLM for advanced rule parsing."
-- "Source code available on GitHub. Thank you."
+```
+"当前实现了原子级别的合规检查能力。
+未来可在以下方向继续推进：
+
+1. 规则引擎扩展：
+   - 接入 buildingSMART IDS 标准，实现行业标准规则描述格式
+   - 支持组合条件：宽度 < 900 且 FireRating 缺失 → fail
+   - 规则模板库：预置 GB 50016 / NFPA 101 常用条款
+
+2. 空间分析深化：
+   - 通过 IfcRelSpaceBoundary 精确分析房间-门-走廊的拓扑关系
+   - 计算疏散路径距离，实现 path-finding 级别的逃生路线检查
+
+3. 工程化：
+   - 批量检查：一次上传多个模型，生成对比报告
+   - 增量检查：仅检查模型变更部分
+   - 版本管理：同一项目不同版本的合规状态追踪
+
+4. UI/UX 优化：
+   - 3D 裁剪面：切分建筑查看内部结构
+   - 测量工具：在 3D 视图中直接量取距离
+   - 移动端适配
+
+5. 部署与集成：
+   - CI/CD 自动化测试流水线
+   - BIM 协作平台集成（BIM360 / Speckle）
+   - 邮件/企业微信通知推送
+```
 
 ---
 
-## 录制准备清单
+## 五、结尾 (2:50-3:00)
 
+```
+"这个项目用 5 天从零搭建了一个可运行的 BIM 合规检查工具，
+核心价值在于：
+- 可运行：完整的前后端架构，四种格式输入
+- 有思考：AI 规则引擎 + 空间分析 + 门分类系统
+- 有品味：专业 UI 设计、Docker 部署、单元测试、清晰的代码分层
+
+源代码和 AI prompts 均已开源在 GitHub。
+感谢您的观看。"
+```
+
+---
+
+## 录制检查清单
+
+- [ ] 启动后端：`uvicorn main:app --host 127.0.0.1 --port 8000`
+- [ ] 启动前端：`vite --host 127.0.0.1 --port 5173`
 - [ ] 打开 http://localhost:5173
-- [ ] 确保后端在 8000 端口运行
+- [ ] 填入 DeepSeek API key（提前存好）
 - [ ] `samples/Ifc4_Revit_ARC.ifc` 放桌面方便拖拽
 - [ ] `samples/sample.json` 备好
-- [ ] 填入 DeepSeek API key
-- [ ] 录屏软件（OBS / Windows 自带 Xbox Game Bar: Win+G）
-- [ ] 麦克风测试
+- [ ] 关闭无关窗口、通知、弹窗
+- [ ] 录屏软件：Win+G（Xbox Game Bar）或 OBS
+- [ ] 麦克风测试，环境安静
+
+## 视频上传
+
+录好后上传到 Bilibili / YouTube，设为"不公开"或"公开"，
+把链接和 GitHub 链接一起发邮件到 junnaifj@hku.hk。
