@@ -76,18 +76,18 @@ def check_door_width(model, min_width_mm: float = DOOR_WIDTH_MIN_MM) -> RuleResu
 def check_fire_rating(model) -> RuleResult:
     """Check that doors and walls have FireRating assigned.
     
-    This is a model property enrichment check, not a compliance rule.
-    All missing FireRating is marked as warning and for review.
+    Searches multiple Pset names to account for different BIM software.
+    Elements with 'Fire' in name but no rating are flagged as fail.
     """
     result = RuleResult(
-        rule_name="fire_rating_enrichment",
-        description="FireRating property enrichment — suggest adding for review",
+        rule_name="fire_rating_presence",
+        description="FireRating property present on all doors and walls",
     )
 
     for elem in model.by_type("IfcDoor") + model.by_type("IfcWall"):
         info = elem.get_info()
         name = info.get("Name") or "Unnamed"
-        etype = elem.is_a()
+        etype = info.get("type", elem.is_a())
 
         psets = util.get_psets(elem)
         fire_rating = None
@@ -109,9 +109,14 @@ def check_fire_rating(model) -> RuleResult:
         }
 
         if not fire_rating:
-            item["status"] = "warning"
-            item["message"] = "FireRating not available — suggest adding for documentation review"
-            result.warnings += 1
+            if any(kw in name.lower() for kw in ("fire", "firewall", "fire_", "1-hr", "2-hr")):
+                item["status"] = "fail"
+                item["message"] = f"'{name}' implies fire rating but none assigned"
+                result.failed += 1
+            else:
+                item["status"] = "warning"
+                item["message"] = "FireRating not assigned — may need manual review"
+                result.warnings += 1
         else:
             item["status"] = "pass"
             item["message"] = f"FireRating: {fire_rating}"
@@ -140,7 +145,7 @@ def check_door_width_json(data, min_width_mm=DOOR_WIDTH_MIN_MM) -> RuleResult:
 
 
 def check_fire_rating_json(data) -> RuleResult:
-    result = RuleResult("fire_rating_enrichment", "FireRating property enrichment")
+    result = RuleResult("fire_rating_presence", "FireRating assigned to all doors and walls")
     all_elems = [("Door", d) for d in data.get("doors", [])] + \
                 [("Wall", w) for w in data.get("walls", [])]
     for i, (etype, e) in enumerate(all_elems):
@@ -148,12 +153,11 @@ def check_fire_rating_json(data) -> RuleResult:
         fr = e.get("fireRating")
         item = {"id": i + 1, "name": name, "type": etype, "guid": None}
         if not fr:
-            item["status"] = "warning"
-            item["message"] = "FireRating not available — suggest adding for review"
-            result.warnings += 1
+            if any(kw in str(name).lower() for kw in ("fire", "firewall", "1-hr", "2-hr")):
+                item["status"] = "fail"; item["message"] = f"'{name}' implies fire rating but none assigned"; result.failed += 1
+            else:
+                item["status"] = "warning"; item["message"] = "FireRating not assigned"; result.warnings += 1
         else:
-            item["status"] = "pass"
-            item["message"] = f"FireRating: {fr}"
-            result.passed += 1
+            item["status"] = "pass"; item["message"] = f"FireRating: {fr}"; result.passed += 1
         result.items.append(item)
     return result
