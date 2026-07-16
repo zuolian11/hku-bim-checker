@@ -24,7 +24,7 @@ BASE = Path(__file__).resolve().parent
 TEMP = BASE / "temp"
 TEMP.mkdir(exist_ok=True)
 models = {}
-MAX_FILE_SIZE = 50 * 1024 * 1024
+MAX_FILE_SIZE = 100 * 1024 * 1024
 
 
 @app.get("/api/health")

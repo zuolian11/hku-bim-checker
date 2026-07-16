@@ -10,7 +10,8 @@ A web-based micro-prototype for automated compliance checking on building models
 ## Features
 
 - **3D Model Rendering** — Powered by [web-ifc-viewer](https://github.com/ThatOpen/web-ifc-viewer)
-- **Built-in Rules**: Door width (>= 900mm) + FireRating presence
+- **Compliance Rules**: Door clear width >= 900mm (fire egress per GB 50016/NFPA 101)
+- **Model Enrichment**: FireRating property presence — suggests adding missing data for documentation review
 - **Spatial Analysis** — Auto-classifies doors as egress / interior / stairwell
 - **AI Rule Generator** — Type `"egress doors must be at least 1000mm wide"` → creates and runs the rule
 - **Multi-format** — IFC, JSON, DXF supported; DWG detected with conversion guidance
