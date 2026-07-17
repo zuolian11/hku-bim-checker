@@ -160,6 +160,13 @@ async def ai_rule(model_id: str, body: dict):
     spatial = analyze_spatial(model) if ext == ".ifc" else None
     classified = {d["id"]: d["classification"] for d in (spatial or {}).get("doors", [])}
 
+    # Detect IFC unit scale for width/height comparisons
+    from ifcopenshell.util.unit import get_prefix_multiplier
+    try:
+        unit_scale = get_prefix_multiplier(model, "LENGTHUNIT") * 1000
+    except Exception:
+        unit_scale = 1000  # assume meters -> mm
+
     from checker import RuleResult
     import ifcopenshell.util.element as util
     results = []
@@ -200,8 +207,10 @@ async def ai_rule(model_id: str, body: dict):
             elif cond == "gte":
                 actual = info.get(prop)
                 if actual is None: item.update(status="warning", message=f"No {prop} data"); r.warnings += 1
-                elif float(actual) < float(val): item.update(status="fail", message=f"{prop} {actual:.0f} < {val:.0f}"); r.failed += 1
-                else: item.update(status="pass", message=f"OK ({actual:.0f})"); r.passed += 1
+                else:
+                    actual_mm = float(actual) * unit_scale
+                    if actual_mm < float(val): item.update(status="fail", message=f"{prop} {actual_mm:.0f} < {float(val):.0f}"); r.failed += 1
+                    else: item.update(status="pass", message=f"OK ({actual_mm:.0f})"); r.passed += 1
             elif cond == "parse_failed":
                 item.update(status="warning", message=rule_def.get("error", "Parse failed")); r.warnings += 1
             r.items.append(item)

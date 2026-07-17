@@ -30,15 +30,27 @@ class RuleResult:
 
 
 def check_all(model, min_width=DOOR_WIDTH_MIN_MM) -> list[RuleResult]:
-    """Run all compliance checks."""
+    """Run all compliance checks. Auto-detects IFC units."""
+    # Detect if model uses meters (most IFC4 files do)
+    from ifcopenshell.util.unit import get_prefix_multiplier
+    try:
+        unit_m = get_prefix_multiplier(model, "LENGTHUNIT")
+        scale = unit_m * 1000  # convert to mm
+    except Exception:
+        scale = 1000  # assume meters -> mm
+    
     return [
-        check_door_width(model, min_width),
+        check_door_width(model, min_width, scale),
         check_fire_rating(model),
     ]
 
 
-def check_door_width(model, min_width_mm: float = DOOR_WIDTH_MIN_MM) -> RuleResult:
-    """Check that all doors meet the minimum clear width requirement."""
+def check_door_width(model, min_width_mm: float = DOOR_WIDTH_MIN_MM, unit_scale: float = 1000) -> RuleResult:
+    """Check that all doors meet the minimum clear width requirement.
+    
+    Args:
+        unit_scale: multiplier to convert IFC units to mm (1000 for meters -> mm)
+    """
     result = RuleResult(
         rule_name="door_clear_width",
         description=f"Door clear width >= {min_width_mm:.0f} mm (configurable)",
@@ -59,14 +71,16 @@ def check_door_width(model, min_width_mm: float = DOOR_WIDTH_MIN_MM) -> RuleResu
             item["status"] = "warning"
             item["message"] = "Width data not available — may need manual check"
             result.warnings += 1
-        elif float(width) < min_width_mm:
-            item["status"] = "fail"
-            item["message"] = f"Width {width:.0f} mm < {min_width_mm:.0f} mm"
-            result.failed += 1
         else:
-            item["status"] = "pass"
-            item["message"] = f"OK ({width:.0f} mm)"
-            result.passed += 1
+            width_mm = float(width) * unit_scale
+            if width_mm < min_width_mm:
+                item["status"] = "fail"
+                item["message"] = f"Width {width_mm:.0f} mm < {min_width_mm:.0f} mm"
+                result.failed += 1
+            else:
+                item["status"] = "pass"
+                item["message"] = f"OK ({width_mm:.0f} mm)"
+                result.passed += 1
 
         result.items.append(item)
 

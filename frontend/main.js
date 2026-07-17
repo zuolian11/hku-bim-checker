@@ -37,6 +37,17 @@ $("btn-key-toggle").addEventListener("click", () => {
   $("btn-key-toggle").textContent = isPass ? "Hide" : "Show";
 });
 
+$("btn-recheck").addEventListener("click", async () => {
+  if (!backendModelID) { showStatus("Upload a model first."); return; }
+  try {
+    showStatus("Re-checking...", false, true);
+    checkResults = await (await fetch(`http://localhost:8000/api/check/${backendModelID}`, { method: "POST" })).json();
+    renderReport();
+    highlightViolations(modelID);
+    hideStatus();
+  } catch(e) { showStatus(e.message, true); }
+});
+
 $("btn-pdf").addEventListener("click", async () => {
   if (!checkResults) { showStatus("Run a check first."); return; }
   try {
@@ -102,6 +113,13 @@ $("btn-ai").addEventListener("click", async () => {
     checkResults = data;
     renderReport();
     hideStatus();
+    // Reload the model to apply new colors
+    if (window._lastFile && modelID >= 0) {
+      viewer.IFC.loader.ifcManager.close(modelID);
+      const m = await viewer.IFC.loadIfc(window._lastFile, false);
+      modelID = m.modelID;
+      highlightViolations(modelID);
+    }
   } catch (e) { showStatus(e.message, true); }
 });
 const drop = $("drop-zone");
@@ -115,6 +133,7 @@ drop.addEventListener("drop", (e) => {
 inp.addEventListener("change", () => { if (inp.files.length) handle(inp.files[0]); });
 
 async function handle(file) {
+  window._lastFile = file;
   const isIFC = file.name.toLowerCase().endsWith(".ifc");
   drop.style.display = "none";
   $("section-summary").classList.add("show");
@@ -138,6 +157,8 @@ async function handle(file) {
     if (isIFC) {
       highlightViolations(modelID);
       loadSpatialAnalysis(backendModelID);
+      viewer.grid.active = false;
+      viewer.grid.dispose();
     }
     hideStatus();
   } catch (e) {
@@ -210,7 +231,7 @@ function renderReport() {
         viewer.IFC.loader.ifcManager.removeSubset(modelID, undefined, "focus");
         const subset = viewer.IFC.loader.ifcManager.createSubset({
           modelID, ids: [id], removePrevious: false, customID: "focus",
-          material: new MeshStandardMaterial({ color: 0x00ff88, roughness: 0.3, metalness: 0.4, transparent: true, opacity: 0.7 }),
+          material: new MeshStandardMaterial({ color: 0xff00ff, roughness: 0.3, metalness: 0.4, transparent: true, opacity: 0.7 }),
         });
         if (subset) {
           await viewer.context.ifcCamera.targetItem(subset);
