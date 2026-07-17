@@ -95,8 +95,7 @@
   LLM 处理复杂语义。
 - 部署：Docker Compose 一套命令启动，Render.com 一键部署。
 
-项目包含 9 条 pytest 单元测试，覆盖规则解析和边界情况。
-整个开发过程由 OpenCode AI 辅助完成，prompts 记录在仓库中。"
+项目包含 9 条 pytest 单元测试，覆盖规则解析和边界情况。"
 ```
 
 ---

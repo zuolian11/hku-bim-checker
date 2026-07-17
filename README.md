@@ -1,7 +1,6 @@
 # BIM Compliance Checker
 
-> HKU AI+BIM Technical Test — July 2026  
-> Built with [OpenCode](https://opencode.ai) AI assistant
+> HKU AI+BIM Technical Test — July 2026
 
 A web-based micro-prototype for automated compliance checking on building models.
 

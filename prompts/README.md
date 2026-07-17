@@ -1,6 +1,6 @@
 # AI Prompts Used
 
-This project was built using **OpenCode** (AI-powered coding assistant).  
+This project was built using AI-powered coding assistance.
 Below are the key prompts and the AI-assisted decisions made.
 
 ## Architecture & Design
