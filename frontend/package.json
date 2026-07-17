@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node -e \"require('fs').copyFileSync('node_modules/web-ifc/web-ifc.wasm','public/web-ifc.wasm')\" && vite",
-    "build": "vite build",
+    "build": "node -e \"require('fs').mkdirSync('public',{recursive:true});require('fs').copyFileSync('node_modules/web-ifc/web-ifc.wasm','public/web-ifc.wasm')\" && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
