@@ -64,6 +64,17 @@ Browser (web-ifc-viewer)       Backend (FastAPI)
        └── colored subsets ←──── result + classifications
 ```
 
+## Tested Models
+
+The checker has been validated with IFC files from different countries to ensure international compatibility:
+
+| Model | Origin | Schema | Features |
+|-------|--------|--------|----------|
+| `FZK-Haus.ifc` | KIT, Germany | IFC4 | Academic building, 5 doors, 7 rooms, 2 storeys, metric units |
+| `Ifc4_Revit_ARC.ifc` | Autodesk Revit | IFC4 | Architecture model, 16 doors, 47 walls, millimeters |
+| `Duplex_Architecture.ifc` | US standard sample | IFC2X3 | 14 doors, 57 walls, 21 spaces, 4 storeys |
+| `sample.json` | Custom | JSON | Simplified format with intentional violations for testing |
+
 ## File Structure
 
 ```
